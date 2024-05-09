@@ -1,0 +1,4 @@
+flutter_native_splash:
+  image: "assets/zwartsteen.png"
+  color: "#000000"
+  fullscreen: true
