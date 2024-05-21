@@ -20,10 +20,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
         alignment: Alignment.center,
         children: <Widget>[
           MobileScanner(
-            onDetect: (barcode, args) {
+            onDetect: (BarcodeCapture barcodeCapture) {
               setState(() {
+                final barcode = barcodeCapture.barcodes.first;
                 _scanResult = barcode.rawValue;
-                if (_scanResult!.contains('youtube.com')) {
+
+                if (_scanResult != null && _scanResult!.contains('youtube.com')) {
                   Navigator.pop(context, _scanResult);
                 }
               });
