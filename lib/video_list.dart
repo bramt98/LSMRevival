@@ -8,9 +8,9 @@ class VideoList extends StatelessWidget {
   VideoList({required this.onSelect, required this.isVideoPlaying, required this.onVideoPlayingChanged});
 
   final List<Map<String, String>> videos = [
-    {'title': 'Locatie Dordrecht', 'url': 'assets/locatie_dordrecht.mp4'},
-    {'title': 'Locatie Roermond', 'url': 'assets/locatie_roermond.mp4'},
-    {'title': 'Locatie Zoetermeer', 'url': 'assets/locatie_zoetermeer.mp4'},
+    {'title': 'Levende Steen Ministries DORDRECHT', 'url': 'assets/locatie_dordrecht.mp4'},
+    {'title': 'Levende Steen Ministries ROERMOND', 'url': 'assets/locatie_roermond.mp4'},
+    {'title': 'Levende Steen Ministries ZOETERMEER', 'url': 'assets/locatie_zoetermeer.mp4'},
   ];
 
   @override
@@ -18,24 +18,29 @@ class VideoList extends StatelessWidget {
     return ListView.builder(
       itemCount: videos.length,
       itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(videos[index]['title']!),
-          onTap: () {
-            onSelect(videos[index]['url']!);
-            onVideoPlayingChanged();
-          },
-          trailing: isVideoPlaying
-              ? const Icon(Icons.play_circle_filled, color: Colors.red)
-              : const Icon(Icons.play_circle_outline),
-          leading: videos[index]['url']!.startsWith('assets') // Add this condition
-              ? IconButton(
-            icon: const Icon(Icons.local_play),
-            onPressed: () {
-              onSelect(videos[index]['url']!);
-              onVideoPlayingChanged();
-            },
-          )
-              : const SizedBox.shrink(),
+        return Column(
+          children: [
+            ListTile(
+              title: Text(videos[index]['title']!),
+              onTap: () {
+                onSelect(videos[index]['url']!);
+                onVideoPlayingChanged();
+              },
+              trailing: isVideoPlaying
+                  ? const Icon(Icons.play_circle_filled, color: Colors.red)
+                  : const Icon(Icons.play_circle_outline, color: Colors.grey),
+              leading: videos[index]['url']!.startsWith('assets') // Add this condition
+                  ? IconButton(
+                icon: const Icon(Icons.location_pin),
+                onPressed: () {
+                  onSelect(videos[index]['url']!);
+                  onVideoPlayingChanged();
+                },
+              )
+                  : const SizedBox.shrink(),
+            ),
+            if (index < videos.length - 1) Divider(height: 1.0, color: Colors.grey),
+          ],
         );
       },
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flick_video_player/flick_video_player.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -13,7 +14,8 @@ class CustomVideoPlayer extends StatefulWidget {
 }
 
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
-  late VideoPlayerController _controller;
+  late VideoPlayerController _videoPlayerController;
+  late FlickManager _flickManager;
   late YoutubePlayerController _youtubeController;
 
   @override
@@ -25,7 +27,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   @override
   void didUpdateWidget(CustomVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.videoUrl!= widget.videoUrl) {
+    if (oldWidget.videoUrl != widget.videoUrl) {
       _disposeControllers();
       _initController();
     }
@@ -34,17 +36,16 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   void _initController() {
     if (widget.videoUrl.contains('youtube.com')) {
       _initYoutubeController();
-    } else if (widget.videoUrl.startsWith('assets/')) {
-      _initAssetController();
     } else {
-      _initNetworkController();
+      _initFlickManager();
     }
   }
 
   void _initYoutubeController() {
     try {
+      final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl)!;
       _youtubeController = YoutubePlayerController(
-        initialVideoId: YoutubePlayer.convertUrlToId(widget.videoUrl)!,
+        initialVideoId: videoId,
         flags: YoutubePlayerFlags(
           autoPlay: true,
           mute: false,
@@ -55,34 +56,29 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     }
   }
 
-  void _initAssetController() {
-    try {
-      _controller = VideoPlayerController.asset(widget.videoUrl);
-      _controller.initialize().then((_) {
-        setState(() {});
-      });
-    } catch (e) {
-      print('Error initializing asset controller: $e');
+  void _initFlickManager() {
+    if (widget.videoUrl.startsWith('asset')) {
+      _videoPlayerController = VideoPlayerController.asset(widget.videoUrl);
+    } else {
+      _videoPlayerController = VideoPlayerController.network(widget.videoUrl);
     }
-  }
 
-  void _initNetworkController() {
-    try {
-      _controller = VideoPlayerController.network(widget.videoUrl);
-      _controller.initialize().then((_) {
-        setState(() {});
-      });
-    } catch (e) {
-      print('Error initializing network controller: $e');
-    }
+    _flickManager = FlickManager(
+      videoPlayerController: _videoPlayerController,
+    );
+
+    _videoPlayerController.initialize().then((value) {
+      setState(() {});
+    });
   }
 
   void _disposeControllers() {
-    if (_youtubeController!= null) {
+    if (_youtubeController != null) {
       _youtubeController.dispose();
     }
-    if (_controller!= null) {
-      _controller.dispose();
+    if (_videoPlayerController != null) {
+      _videoPlayerController.dispose();
+      _flickManager.dispose();
     }
   }
 
@@ -100,15 +96,17 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         key: widget.key,
         showVideoProgressIndicator: true,
         progressIndicatorColor: Colors.black,
+        aspectRatio: 16 / 9, // Set aspect ratio here
       );
     } else {
-      return _controller.value.isInitialized
-          ? AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: VideoPlayer(_controller),
-      )
-          : Center(
-        child: CircularProgressIndicator(),
+      return ClipRect(
+        child: AspectRatio(
+          aspectRatio: 16 / 9, // Set maximum aspect ratio here
+          child: FlickVideoPlayer(
+            flickManager: _flickManager,
+            key: widget.key,
+          ),
+        ),
       );
     }
   }
